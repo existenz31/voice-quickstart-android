@@ -1,36 +1,33 @@
+// Follow the steps in https://developers.google.com/mobile/add to generate your own google-services.json file.
 {
   "project_info": {
-    "project_number": "579773180742",
-    "project_id": "arkea-poc-9ab60",
-    "storage_bucket": "arkea-poc-9ab60.appspot.com"
+    "project_number": "your_project_number",
+    "project_id": "your_project_id"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:579773180742:android:e2b26ce04b7b4ad03c1347",
+        "mobilesdk_app_id": "your_mobilesdk_app_id",
         "android_client_info": {
           "package_name": "com.twilio.voice.quickstart"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "579773180742-ta3vglm8ihkrs8em2rb0tkloa28bmm64.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDcCttv86ktkWPZ_We6yQpJaV8lXiK4cxg"
+          "current_key": "your_current_key"
         }
       ],
       "services": {
+        "analytics_service": {
+          "status": 1
+        },
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "579773180742-ta3vglm8ihkrs8em2rb0tkloa28bmm64.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 1
         }
       }
     }

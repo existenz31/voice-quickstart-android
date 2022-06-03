@@ -8,8 +8,8 @@ exports.handler = function(context, event, callback) {
 
   const outgoingApplicationSid = context.APP_SID;
   const pushCredentialSid = context.PUSH_CREDENTIAL_SID;
-  const identity = event.identity?event.identity:'user';
-  console.log("identity => " + identity);
+  const identity = 'user';
+
   const voiceGrant = new VoiceGrant({
     outgoingApplicationSid: outgoingApplicationSid,
     pushCredentialSid: pushCredentialSid
