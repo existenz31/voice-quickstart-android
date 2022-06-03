@@ -22,7 +22,6 @@ ext.playCustomRingback = {
 
 android {
     compileSdkVersion versions.compileSdk
-    buildToolsVersion versions.buildTools
 
     compileOptions {
         sourceCompatibility versions.java
@@ -65,6 +64,7 @@ android {
             universalApk false
         }
     }
+    namespace 'com.twilio.voice.quickstart'
 }
 
 dependencies {

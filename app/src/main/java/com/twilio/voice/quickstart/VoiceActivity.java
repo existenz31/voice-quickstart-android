@@ -27,6 +27,7 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Chronometer;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
@@ -50,7 +51,17 @@ import com.twilio.voice.ConnectOptions;
 import com.twilio.voice.RegistrationException;
 import com.twilio.voice.RegistrationListener;
 import com.twilio.voice.Voice;
+import com.twilio.voice.quickstart.notify.UdpClientListen;
 
+
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -65,7 +76,7 @@ public class VoiceActivity extends AppCompatActivity {
     private static final String TAG = "VoiceActivity";
     private static final int MIC_PERMISSION_REQUEST_CODE = 1;
     private static final int PERMISSIONS_REQUEST_CODE = 100;
-    private String accessToken = "PASTE_YOUR_ACCESS_TOKEN_HERE";
+    private String accessToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImN0eSI6InR3aWxpby1mcGE7dj0xIn0.eyJqdGkiOiJTS2M1NzlmNzMyYTQ0NDRiMWExY2FmYjA2MDUxYzE2YmE2LTE2NTQyNjIxMDUiLCJncmFudHMiOnsiaWRlbnRpdHkiOiIxMjM0NTY3OCIsInZvaWNlIjp7ImluY29taW5nIjp7ImFsbG93Ijp0cnVlfSwib3V0Z29pbmciOnsiYXBwbGljYXRpb25fc2lkIjoiQVBmNzBkMTE0ZmNlMjJjNGNjYjIyNDQwZGQ2YmMxZGI5NyJ9LCJwdXNoX2NyZWRlbnRpYWxfc2lkIjoiQ1I1MTUyMWU0NTk1OGNlNjQ4NjQwMjVlZjFlZDUwYWI0ZiJ9fSwiaWF0IjoxNjU0MjYyMTA1LCJleHAiOjE2NTQyNjU3MDUsImlzcyI6IlNLYzU3OWY3MzJhNDQ0NGIxYTFjYWZiMDYwNTFjMTZiYTYiLCJzdWIiOiJBQzk5N2JlNjk5OTQwMmYxODE4MmJmMTE4ZDAwNzI0MjYwIn0.VRDmdSDuyBrZFG758xWCEHx4RtRi6vqvdEFBsWoB4vo";
 
     /*
      * Audio device management
@@ -96,10 +107,68 @@ public class VoiceActivity extends AppCompatActivity {
     RegistrationListener registrationListener = registrationListener();
     Call.Listener callListener = callListener();
 
+    Thread udpConnect;
+
+    private void voiceConnect(String contact) {
+        params.put("adherent", contact);
+        ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
+                .params(params)
+                .build();
+
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(getApplicationContext(),"Notification received => Call in progress",Toast.LENGTH_LONG).show();
+                activeCall = Voice.connect(VoiceActivity.this, connectOptions, callListener);
+                setCallUI();
+            }
+        });
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_voice);
+
+        UdpClientListen cl = new UdpClientListen();
+        cl.setPacketListener(new UdpClientListen.PacketListener() {
+            @Override
+            public void onPacketReceived(String text) {
+                Log.i("UDP received", text);
+                EditText contact = (EditText) findViewById(R.id.etNumeroTransmetteur);
+                voiceConnect(contact.getText().toString());
+            }
+        });
+        udpConnect = new Thread(cl);
+        udpConnect.start();
+
+        // Generate Token (dirty management using thread => move it to a Service)
+        Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                HttpURLConnection urlConnection = null;
+                try {
+                    URL url = new URL("https://quickstart-1927-dev.twil.io/access-token?identity=alice");
+                    urlConnection = (HttpURLConnection) url.openConnection();
+                    InputStream in = new BufferedInputStream(urlConnection.getInputStream());
+                    accessToken = readStream(in);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                    urlConnection.disconnect();
+                }
+            }
+        });
+        //thread.start();
+        //try {
+        //    Thread.sleep(2000);
+        //} catch (InterruptedException e) {
+        //    e.printStackTrace();
+        //}
+        // End of dirty management
 
         // These flags ensure that the activity can be launched when the screen is locked.
         Window window = getWindow();
@@ -157,12 +226,24 @@ public class VoiceActivity extends AppCompatActivity {
             }
         }
 
+
         /*
          * Setup audio device management and set the volume control stream
          */
         audioSwitch = new AudioSwitch(getApplicationContext());
         savedVolumeControlStream = getVolumeControlStream();
         setVolumeControlStream(AudioManager.STREAM_VOICE_CALL);
+    }
+
+
+    private String readStream(InputStream is) throws IOException {
+        StringBuilder sb = new StringBuilder();
+        BufferedReader r = new BufferedReader(new InputStreamReader(is),1000);
+        for (String line = r.readLine(); line != null; line =r.readLine()){
+            sb.append(line);
+        }
+        is.close();
+        return sb.toString();
     }
 
     @Override
@@ -455,15 +536,12 @@ public class VoiceActivity extends AppCompatActivity {
         return (dialog, which) -> {
             // Place a call
             EditText contact = ((AlertDialog) dialog).findViewById(R.id.contact);
-            params.put("to", contact.getText().toString());
-            ConnectOptions connectOptions = new ConnectOptions.Builder(accessToken)
-                    .params(params)
-                    .build();
-            activeCall = Voice.connect(VoiceActivity.this, connectOptions, callListener);
-            setCallUI();
+            voiceConnect(contact.getText().toString());
             alertDialog.dismiss();
         };
     }
+
+
 
     private DialogInterface.OnClickListener cancelCallClickListener() {
         return (dialogInterface, i) -> {

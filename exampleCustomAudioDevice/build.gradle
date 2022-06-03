@@ -2,7 +2,6 @@ apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion versions.compileSdk
-    buildToolsVersion versions.buildTools
 
     compileOptions {
         sourceCompatibility versions.java
@@ -41,6 +40,7 @@ android {
             universalApk false
         }
     }
+    namespace 'com.twilio.examplecustomaudiodevice'
 }
 
 dependencies {
