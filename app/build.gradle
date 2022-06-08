@@ -22,7 +22,6 @@ ext.playCustomRingback = {
 
 android {
     compileSdkVersion versions.compileSdk
-    buildToolsVersion versions.buildTools
 
     compileOptions {
         sourceCompatibility versions.java
