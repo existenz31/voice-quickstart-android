@@ -1,0 +1,10 @@
+
+twilio api:chat:v2:credentials:create \
+    --type=fcm \
+    --friendly-name="voice-push-credential-fcm" \
+    --secret=AAAAhv0sq0Y:APA91bF-Nxd6_EdLpkA4KPIh7dtwY64rCwivhyHbjn74KT5BD2wUmMXnprXD4KPKGfBpl2Tmc2e6l99EDA2at_PorOizDJ1aNdYcRp8jypeq_7IO4pHr0ccb4HjBWZFdbdelyCVoluUO
+==>> CR51521e45958ce64864025ef1ed50ab4f
+twilio token:voice \
+    --identity=alice \
+    --voice-app-sid=APf70d114fce22c4ccb22440dd6bc1db97 \
+    --push-credential-sid=CR51521e45958ce64864025ef1ed50ab4f
